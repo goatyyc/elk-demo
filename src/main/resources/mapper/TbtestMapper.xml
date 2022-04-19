@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo.mapper.TbtestMapper">
+  <resultMap id="BaseResultMap" type="com.example.demo.pojo.Tbtest">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="type" jdbcType="INTEGER" property="type" />
+    <result column="name" jdbcType="VARCHAR" property="name" />
+    <result column="money" jdbcType="DECIMAL" property="money" />
+  </resultMap>
+  
+  <resultMap id="rowResultMap" type="com.example.demo.dto.RowData">
+<!--    <result column="type" javaType="INTEGER" property="name" />-->
+    <result column="total" javaType="DECIMAL" property="total" />
+    <collection property="valueList"
+                ofType="java.lang.String"
+                column="{name1=name}"
+                select="selectByType"
+                javaType="java.util.List">
+      <result column="item" />
+    </collection>
+  </resultMap>
+  
+  
+  
+  <sql id="Base_Column_List">
+    id, `type`, `name`, money
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from tbtest
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  
+    <select id="selectRowData" resultMap="rowResultMap">
+      select sum(money) as total,name
+      from tbtest group by name order by name; 
+    </select>
+  <select id="selectByType" resultType="java.lang.String">
+    select 
+    sum(coalesce(money,0))
+    from 
+        (
+            select distinct type as itype from
+            tbtest order by type
+        ) t1
+    left join tbtest t2 on t1.itype=t2.type
+    and name=#{name1}
+    group by itype
+    order by itype
+  </select>
+
+    <select id="selectSummaryData" resultType="com.example.demo.dto.SummaryData">
+        select sum(money) as total,name
+
+        from tbtest
+        group by name
+    </select>
+
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from tbtest
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.example.demo.pojo.Tbtest" useGeneratedKeys="true">
+    insert into tbtest (`type`, `name`, money
+      )
+    values (#{type,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{money,jdbcType=DECIMAL}
+      )
+  </insert>
+  <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.example.demo.pojo.Tbtest" useGeneratedKeys="true">
+    insert into tbtest
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="type != null">
+        `type`,
+      </if>
+      <if test="name != null">
+        `name`,
+      </if>
+      <if test="money != null">
+        money,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="type != null">
+        #{type,jdbcType=INTEGER},
+      </if>
+      <if test="name != null">
+        #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="money != null">
+        #{money,jdbcType=DECIMAL},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.example.demo.pojo.Tbtest">
+    update tbtest
+    <set>
+      <if test="type != null">
+        `type` = #{type,jdbcType=INTEGER},
+      </if>
+      <if test="name != null">
+        `name` = #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="money != null">
+        money = #{money,jdbcType=DECIMAL},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.example.demo.pojo.Tbtest">
+    update tbtest
+    set `type` = #{type,jdbcType=INTEGER},
+      `name` = #{name,jdbcType=VARCHAR},
+      money = #{money,jdbcType=DECIMAL}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+</mapper>
